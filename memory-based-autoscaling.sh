@@ -8,17 +8,19 @@ SCRIPT_HOME=/var/log/kube-deploy
 if [ ! -d $SCRIPT_HOME ]; then
   mkdir -p $SCRIPT_HOME
 fi
-RED='\033[01;31m'
-YELLOW='\033[0;33m'
-NONE='\033[00m'
-
-print_help(){
-  echo -e "${YELLOW}Use the following Command:"
-  echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo -e "${RED}./<script-name> --action <action-name> --deployment <deployment-name> --scaleup <scaleupthreshold> --scaledown <scaledownthreshold>"
-  echo -e "${YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  printf "Choose one of the available actions below:\n"
-  printf " get-heapmemory\n get-podmemory\n deploy-heap-autoscaling\n deploy-pod-autoscaling\n"
+#LOG_FILE=$SCRIPT_HOME/kube-$TODAY.log
+#touch $LOG_FILE                                                                                                                                                                                           
+RED='\033[01;31m'                                                                                                                                                                                          
+YELLOW='\033[0;33m'                                                                                                                                                                                        
+NONE='\033[00m'                                                                                                                                                                                            
+                                                                                                                                                                                                           
+print_help(){                                                                                                                                                                                              
+  echo -e "${YELLOW}Use the following Command:"                                                                                                                                                            
+  echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"                                                            
+  echo -e "${RED}./<script-name> --action <action-name> --deployment <deployment-name> --scaleup <scaleupthreshold> --scaledown <scaledownthreshold>"                                                      
+  echo -e "${YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"                                                   
+  printf "Choose one of the available actions below:\n"                                                                                                                                                    
+  printf " get-heapmemory\n get-podmemory\n deploy-heap-autoscaling\n deploy-pod-autoscaling\n"                                                                                                            
   echo -e "You can get the list of existing deployments using command: kubectl get deployments${NONE}"
 }
 ARG="$#"
