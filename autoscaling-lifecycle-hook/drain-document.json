@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.2",
+  "description": "Draining Node",
+  "parameters": {
+      "nodename":{
+         "type":"String",
+         "description":"Specify the Node name to drain"
+      }
+},
+  "runtimeConfig": {
+    "aws:runShellScript": {
+      "properties": [
+        {
+          "id": "0.aws:runShellScript",
+          "runCommand": [
+            "#!/bin/bash",
+            "kubectl drain --force {{ nodename }}"
+          ]
+        }
+      ]
+    }
+  }
+}
