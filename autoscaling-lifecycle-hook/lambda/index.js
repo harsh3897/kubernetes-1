@@ -44,7 +44,7 @@ function executeCommand(nodename, lifecycleParams, context) {
     var ssmparams = {
         DocumentName: documentName,
         Comment: 'Draining Node', //any comment
-        OutputS3BucketName: 'ail-mib-ssmagent-logs', //save the logs in this bucket
+        OutputS3BucketName: 'xxxxxxxx', //save the logs in this bucket
         OutputS3KeyPrefix: 'ssm-logs', //bucket prefix
         OutputS3Region: 'us-east-1', //region of bucket
         Targets: [{
