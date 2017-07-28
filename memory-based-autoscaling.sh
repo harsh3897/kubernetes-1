@@ -9,18 +9,18 @@ if [ ! -d $SCRIPT_HOME ]; then
   mkdir -p $SCRIPT_HOME
 fi
 #LOG_FILE=$SCRIPT_HOME/kube-$TODAY.log
-#touch $LOG_FILE                                                                                                                                                                                           
-RED='\033[01;31m'                                                                                                                                                                                          
-YELLOW='\033[0;33m'                                                                                                                                                                                        
-NONE='\033[00m'                                                                                                                                                                                            
-                                                                                                                                                                                                           
-print_help(){                                                                                                                                                                                              
-  echo -e "${YELLOW}Use the following Command:"                                                                                                                                                            
-  echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"                                                            
-  echo -e "${RED}./<script-name> --action <action-name> --deployment <deployment-name> --scaleup <scaleupthreshold> --scaledown <scaledownthreshold>"                                                      
-  echo -e "${YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"                                                   
-  printf "Choose one of the available actions below:\n"                                                                                                                                                    
-  printf " get-heapmemory\n get-podmemory\n deploy-heap-autoscaling\n deploy-pod-autoscaling\n"                                                                                                            
+#touch $LOG_FILE
+RED='\033[01;31m'
+YELLOW='\033[0;33m'
+NONE='\033[00m'
+
+print_help(){
+  echo -e "${YELLOW}Use the following Command:"
+  echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+  echo -e "${RED}./<script-name> --action <action-name> --deployment <deployment-name> --scaleup <scaleupthreshold> --scaledown <scaledownthreshold>"
+  echo -e "${YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+  printf "Choose one of the available actions below:\n"
+  printf " get-heapmemory\n get-podmemory\n deploy-heap-autoscaling\n deploy-pod-autoscaling\n"
   echo -e "You can get the list of existing deployments using command: kubectl get deployments${NONE}"
 }
 ARG="$#"
@@ -59,6 +59,9 @@ LOG_FILE=$SCRIPT_HOME/kube-$DEPLOYMENT-$TODAY.log
 touch $LOG_FILE
 
 REPLICAS=`$KUBECTL get deployment -l name=$DEPLOYMENT | awk '{print $3}' | grep -v "CURRENT"`
+MINREPLICAS=`$KUBECTL get hpa $DEPLOYMENT | awk '{print $5}' | grep -v "MINPODS"`
+MAXREPLICAS=`$KUBECTL get hpa $DEPLOYMENT | awk '{print $6}' | grep -v "MAXPODS"`
+
 #########################################
 #defining function to calculate heap memory
 
@@ -99,7 +102,7 @@ calculate_heap(){
 #defining function to autoscale based on heap memory
 
 heapmemory_autoscale(){
-  if [ $AVGHEAPMEM -gt $SCALEUPTHRESHOLD ]
+  if [ $AVGHEAPMEM -gt $SCALEUPTHRESHOLD ] && [ $REPLICAS -lt $MAXREPLICAS ]
   then
       echo "Memory is greater than the threshold" >> $LOG_FILE
       count=$((REPLICAS+1))
@@ -107,7 +110,7 @@ heapmemory_autoscale(){
       scale=`$KUBECTL scale --replicas=$count deployment/$DEPLOYMENT`
       echo "Deployment Scaled Up" >> $LOG_FILE
 
-  elif [ $AVGHEAPMEM -lt $SCALEDOWNTHRESHOLD ] && [ $REPLICAS -gt 2 ]
+  elif [ $AVGHEAPMEM -lt $SCALEDOWNTHRESHOLD ] && [ $REPLICAS -gt $MINREPLICAS ]
   then
       echo "Memory is less than threshold" >> $LOG_FILE
       count=$((REPLICAS-1))
@@ -153,7 +156,7 @@ echo "Average Pod Memory: "$AVGPODMEM >> $LOG_FILE
 #defining function to autoscale based on pod memory
 
 podmemory_autoscale(){
-  if [ $AVGPODMEM -gt $SCALEUPTHRESHOLD ]
+  if [ $AVGPODMEM -gt $SCALEUPTHRESHOLD ] && [ $REPLICAS -lt $MAXREPLICAS ]
   then
     echo "Memory is greater than threshold" >> $LOG_FILE
     count=$((REPLICAS+1))
@@ -161,7 +164,7 @@ podmemory_autoscale(){
     scale=`$KUBECTL scale --replicas=$count deployment/$DEPLOYMENT`
     echo "Deployment Scaled Up" >> $LOG_FILE
 
-  elif [ $AVGPODMEM -lt $SCALEDOWNTHRESHOLD ] && [ $REPLICAS -gt 2 ]
+  elif [ $AVGPODMEM -lt $SCALEDOWNTHRESHOLD ] && [ $REPLICAS -gt $MINREPLICAS ]
   then
     echo "Memory is less than threshold" >> $LOG_FILE
     count=$((REPLICAS-1))
